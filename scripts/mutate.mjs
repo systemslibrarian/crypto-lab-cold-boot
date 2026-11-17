@@ -69,7 +69,7 @@ const MUTATIONS = [
     anchor: 'export const SLICES: readonly Slice[] = [0, 1, 2, 3].map((p) => {\n  const j = (p + 1) % 4;',
     replacement: 'export const SLICES: readonly Slice[] = [0, 1, 2, 3].map((p) => {\n  const j = p;',
     suite: 'unit',
-    owner: 'check D: the relations hold',
+    owner: 'check D: the (position, round) relations hold',
   },
   {
     id: 4,
@@ -104,8 +104,16 @@ const MUTATIONS = [
     file: 'src/cold/stitch.ts',
     anchor: '      const used = scheduleWrongWayBits(expandKey(key), image, cap);\n      if (used > cap) return;',
     replacement: '      const used = scheduleWrongWayBits(expandKey(key), image, cap);\n      // mutation 7: accept without the certificate',
-    suite: 'claims',
-    owner: 'NEGATIVE CLAIM BITE: random bytes must not show the recovered clause',
+    // The brief names 176 random bytes as this mutation's bite fixture. It does
+    // not bite, and the reason is measured rather than argued: for a random
+    // image all four slice lists come back EMPTY, so the search never reaches
+    // the check this mutation removes -- `combinationsChecked` is 0. The bite
+    // has to be an image the search gets all the way through and the
+    // CERTIFICATE alone refuses, which means disagreeing with the key only in
+    // w43: the four bytes no slice search views. See the "the certificate is
+    // the only thing that sees the last round key" suite.
+    suite: 'unit',
+    owner: 'BITE: a valid schedule with one wrong-way bit in byte',
   },
   {
     id: 8,
@@ -124,6 +132,30 @@ const MUTATIONS = [
     replacement: '      const v = POPCOUNT[g & ~c & 0xff];\n      if (v <= maxBudget && c !== g) byViolations[v].push(c);',
     suite: 'unit',
     owner: 'per-byte candidates',
+  },
+  {
+    // Template 4.1d: delete the negative-claim text and assertion 3 must fail.
+    id: 10,
+    name: 'the negative-claim sentence is deleted from the page',
+    file: 'src/ui/recover-panel.ts',
+    anchor: "      el('p', { class: 'negative-claim', 'data-claim': 'negative-claim', text: NEGATIVE_CLAIM }),",
+    replacement: "      null,",
+    suite: 'claims',
+    owner: 'NEGATIVE CLAIM: the key bytes are wrecked',
+  },
+  {
+    // Template 4.1d: break a check inside the fixture and assertion 2 must
+    // fail. `certified` is the certificate line, so forcing it false makes the
+    // fixture render a FAILING check -- at which point it would be
+    // demonstrating the mechanism not working rather than its limit, and the
+    // negative claim would be unearned.
+    id: 11,
+    name: 'the certificate line inside the negative-claim fixture reports failure',
+    file: 'src/ui/recover-panel.ts',
+    anchor: '            checkLine(\n              result.certified ? \'pass\' : \'fail\',',
+    replacement: '            checkLine(\n              false ? \'pass\' : \'fail\',',
+    suite: 'claims',
+    owner: 'NEGATIVE CLAIM: the key bytes are wrecked',
   },
 ];
 

@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { KEY_BYTES, SCHEDULE_BYTES, countOnes, expandKey, toHex } from './aes-schedule';
+import {
+  KEY_BYTES,
+  SCHEDULE_BYTES,
+  aAt,
+  bAt,
+  cAt,
+  countOnes,
+  dAt,
+  expandKey,
+  toHex,
+} from './aes-schedule';
 import { damageBetween, decaySchedule, seededRandom, wrongWayBits } from './decay';
 import {
   FIXED_IMAGE_FACTS,
@@ -236,6 +246,92 @@ describe('invariant 3: certification is separate from knowing the answer', () =>
     crypto.getRandomValues(image);
     const result = reconstruct(image, ONE_WAY, fast);
     expect(result.certified).toBe(result.key !== null);
+  });
+});
+
+/**
+ * What the full-schedule check adds that nothing else does.
+ *
+ * The certificate is the last step of the search, and it is easy to assume it
+ * is belt-and-braces over the chained test that came before it. It is not.
+ * Four bytes of the 176 -- w43, the d column of the last round key -- are
+ * viewed by NO slice search: slice p reads its neighbour's d chain only as far
+ * as d[j][9], because d[j][10] is never an S-box input for anything. So those
+ * four bytes are checked exactly once, by the full expansion, and an image
+ * that disagrees with a key only there is rejected only there.
+ *
+ * This is also the correct bite for the brief's mutation 7 ("recovered" set
+ * without the full-schedule check). The brief names 176 random bytes as that
+ * bite, and measured here it does not bite: for a random image all four slice
+ * lists come back EMPTY, so the search never reaches the check the mutation
+ * removes. The test below does reach it.
+ */
+describe('the certificate is the only thing that sees the last round key', () => {
+  /** The four bytes w43 -- d[p][10] for p = 0..3. */
+  const LAST_WORD = [172, 173, 174, 175];
+
+  it('no slice search looks at w43, so only the full expansion can reject it', () => {
+    const viewed = new Set<number>();
+    for (let p = 0; p < 4; p++) {
+      const j = (p + 1) % 4;
+      for (let r = 0; r <= 10; r++) {
+        viewed.add(aAt(p, r));
+        viewed.add(bAt(p, r));
+        viewed.add(cAt(p, r));
+      }
+      // Slice p guesses its neighbour's d chain only to d[j][9] ...
+      for (let r = 0; r <= 9; r++) viewed.add(dAt(j, r));
+      // ... and derives the neighbour's c chain from consecutive d bytes.
+      for (let r = 1; r <= 9; r++) viewed.add(cAt(j, r));
+    }
+    const unviewed = [...Array(SCHEDULE_BYTES).keys()].filter((i) => !viewed.has(i));
+    expect(unviewed).toEqual(LAST_WORD);
+  });
+
+  it.each(LAST_WORD)(
+    'BITE: a valid schedule with one wrong-way bit in byte %i yields NO key',
+    (index) => {
+      const image = Uint8Array.from(FIXTURE_SCHEDULE);
+      // Set a bit the true schedule does not have, in a byte nothing but the
+      // full expansion examines.
+      const spare = ~FIXTURE_SCHEDULE[index] & 0xff;
+      const bit = spare & -spare;
+      expect(bit).toBeGreaterThan(0);
+      image[index] |= bit;
+      expect(wrongWayBits(FIXTURE_SCHEDULE, image)).toBe(1);
+
+      const result = reconstruct(image, ONE_WAY, fast);
+      // Every slice still agrees, every chain still joins -- and the key is
+      // still refused, because its expansion cannot explain this image.
+      expect(result.outcome).toBe('no-consistent-key');
+      expect(result.key).toBeNull();
+      expect(result.certified).toBe(false);
+      // Proof the search really did get that far, unlike the random-bytes
+      // fixture, where all four slice lists come back empty.
+      expect(result.combinationsChecked).toBeGreaterThan(0);
+    },
+  );
+
+  it('and with a budget for that one bit, the same image yields the key', () => {
+    const image = Uint8Array.from(FIXTURE_SCHEDULE);
+    const spare = ~FIXTURE_SCHEDULE[172] & 0xff;
+    image[172] |= spare & -spare;
+    const result = reconstruct(image, { d0: 0.15, d1: 0.001 }, { ...fast, maxWrongWayBudget: 1 });
+    expect(result.outcome).toBe('recovered');
+    expect(matchesTruth(result.key, FIXTURE_KEY)).toBe(true);
+    expect(result.wrongWayBitsUsed).toBe(1);
+  });
+
+  it('a random image never reaches the certificate at all', () => {
+    // Recorded because it is what makes the brief's named bite fixture for
+    // mutation 7 inert: the chained test rejects a random image four slices
+    // before the full expansion is reached.
+    const noise = new Uint8Array(SCHEDULE_BYTES);
+    crypto.getRandomValues(noise);
+    const result = reconstruct(noise, ONE_WAY, fast);
+    expect(result.outcome).toBe('no-consistent-key');
+    expect(result.combinationsChecked).toBe(0);
+    for (const stage of result.stages) expect(stage.final).toBe(0);
   });
 });
 
