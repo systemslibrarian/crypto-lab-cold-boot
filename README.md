@@ -182,8 +182,9 @@ node scripts/run-measure.mjs   # re-measure the recovery rates and times
 
 ## Build & Verify
 
-**137 unit tests** (`npm test`), plus **2 accessibility tests** and **18 claims tests** in the
-browser gate.
+**126 unit tests** (`npm test`), plus **2 accessibility tests** and **17 claims tests** in the
+browser gate (`npm run test:e2e:all`). The unit suite includes the slow rate measurements, so it
+takes a few minutes.
 
 **Known-answer tests.**
 
@@ -222,10 +223,19 @@ refusal and the retired verdict — and scans each at 1280 px and 380 px. It ass
 keyboard reachability of every scroll region, reflow at phone width, and that nothing focusable
 paints nothing.
 
-**The mutation ledger.** `npm run mutate` applies each mutation as a concrete patch, confirms the
-build still succeeds and the bundle hash moved, and confirms the owning test fails. A mutation that
-does not compile is recorded as DOES NOT BUILD and is never counted as a kill. See
-`scripts/mutate.mjs` for the patches and `MUTATIONS.md` for the ledger it writes.
+**The mutation ledger.** `npm run mutate` applies each of eleven mutations as a concrete patch,
+confirms the build still succeeds and the bundle hash moved, and confirms the owning test fails
+naming itself. A mutation that does not compile is recorded as DOES NOT BUILD and is never counted
+as a kill; a surviving mutation fails the script. Currently **11 of 11 are killed**. See
+`scripts/mutate.mjs` for the patches and `MUTATIONS.md` for the ledger the script writes — every
+`observed` line in it was produced by the run rather than typed.
+
+One of those eleven is worth reading for what it found. The brief named "176 random bytes" as the
+fixture that should catch a build reporting "recovered" without the full-schedule check. It does
+not: for a random image all four slice candidate lists come back empty, so the search never reaches
+that check. The four bytes of **w43** turn out to be the only ones no slice search looks at, which
+makes the certificate the only thing that can reject an image disagreeing there — and an otherwise
+valid schedule with one wrong-way bit in w43 is the fixture that does bite.
 
 ---
 
