@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+*.local
+playwright-report
+test-results
+public/deployment.json
+chat.md
+
+# The build standard lives in the catalog repo (audits/_MASTER-TEMPLATE.md).
+# A committed snapshot of it ages silently into a second, wrong account of the standard.
+_MASTER-TEMPLATE.md

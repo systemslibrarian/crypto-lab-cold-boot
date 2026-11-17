@@ -1,0 +1,987 @@
+/*
+ * Cold Boot -- the lab's own stylesheet.
+ *
+ * Dark is the only theme, pinned on <html> before first paint. Every colour
+ * below is a token on :root, and every text token was checked arithmetically
+ * against the surface it sits on before it was written here; the CI gate
+ * recomputes them on the production build.
+ *
+ * State is never carried by colour alone. Every lost bit, every verdict and
+ * every pass/fail carries a text glyph and a word as well as a hue, because
+ * WCAG 1.4.1 requires it and because a learner reading in grayscale should see
+ * exactly what a learner reading in colour sees.
+ */
+
+:root {
+  /* The catalog accent for this lab. */
+  --accent: #e6c229;
+  /* Text that sits ON the accent fill. Near-white would be unreadable on gold. */
+  --accent-ink: #1b1403;
+
+  --bg: #0b1016;
+  --bg-raised: #121923;
+  --bg-sunken: #070b10;
+
+  /* Panel chrome. Decorative, so not held to 1.4.11. */
+  --border: #2b3644;
+  --border-strong: #49596c;
+  /* The sole boundary of an interactive control, so >= 3:1 on bg and raised. */
+  --control-border: #657790;
+
+  --text: #e8eef6;
+  --text-dim: #a9b6c6;
+  --text-muted: #93a1b2;
+
+  /* Semantics track system integrity, not raw return values. */
+  --ok: #54d6a8;
+  --ok-ink: #04150f;
+  --alarm: #ff8d98;
+  --alarm-ink: #210306;
+
+  /* A bit that fell to the ground state, and one that flipped away from it. */
+  --lost: #ff9a6e;
+  --wrong-way: #c9a2ff;
+  --kept: #7fb2ff;
+
+  --radius: 10px;
+  --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/*
+ * border-box everywhere, and this is a WCAG 1.4.10 fix rather than a
+ * preference. Under the default content-box, any padded element given
+ * `width: 100%` is as wide as its container PLUS its own padding and border,
+ * so it overflows by exactly that much -- which is what the hero's "why it
+ * matters" box did at 380px: 348px of container plus 33.6px of padding and 2px
+ * of border came to 384px, and the page scrolled sideways by 20px. The
+ * template's hero snippet gives that box `width: 100%` in its mobile query
+ * without setting box-sizing, so the defect travels with the snippet.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Longhand, not the `background` shorthand: axe and WebKit miss the shorthand. */
+  background-color: var(--bg);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+#app {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding-inline: clamp(1rem, 3vw, 2rem);
+  padding-block: 0 3rem;
+}
+
+#app:focus {
+  outline: none;
+}
+
+/* Scoped to #app so they never fight the always-dark top bar. */
+#app p,
+#app li,
+#app dd,
+#app dt {
+  color: var(--text-dim);
+}
+
+#app h2,
+#app h3,
+#app h4 {
+  color: var(--text);
+  line-height: 1.25;
+  margin: 0 0 0.5rem;
+}
+
+#app h2 {
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+}
+
+#app h3 {
+  font-size: 1.05rem;
+}
+
+#app h4 {
+  font-size: 0.95rem;
+}
+
+#app a {
+  color: var(--accent);
+  /* Never colour alone: an inline link keeps its underline. */
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+#app a:hover {
+  text-decoration-thickness: 2px;
+}
+
+#app code,
+#app kbd,
+#app .mono {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
+#app code {
+  background-color: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
+  color: var(--text);
+}
+
+:where(#app) :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ---------------------------------------------------------------- hero */
+
+.cl-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(1rem, 4vw, 3rem);
+  flex-wrap: wrap;
+  margin: clamp(1rem, 3vw, 2rem) 0 1.5rem;
+}
+.cl-hero-main {
+  flex: 1 1 22rem;
+  min-width: min(100%, 20rem);
+}
+.cl-hero-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.8vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+.cl-hero-sub {
+  margin: 0.4rem 0 0;
+  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+  letter-spacing: 0.01em;
+  color: var(--accent);
+}
+.cl-hero-desc {
+  margin: 0.55rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+  max-width: 60ch;
+}
+.cl-hero-why {
+  flex: 0 1 min(40%, 26rem);
+  min-width: min(100%, 15rem);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 0.85rem 1.05rem;
+  background: color-mix(in oklab, var(--accent) 6%, transparent);
+}
+.cl-hero-why-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+.cl-hero-why-text {
+  margin: 0.35rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+@media (max-width: 640px) {
+  .cl-hero {
+    flex-direction: column;
+  }
+  /* A ROW basis read as a HEIGHT once the direction flips reserves dead space
+     under the title at every width below 640px. Reset both, not just the box. */
+  .cl-hero-main {
+    flex-basis: auto;
+    min-width: 0;
+  }
+  .cl-hero-why {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------- tabs */
+
+.tabs {
+  margin: 1.5rem 0 0;
+}
+
+.tab-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tab-btn {
+  appearance: none;
+  background-color: var(--bg-raised);
+  color: var(--text-dim);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  padding: 0.55rem 0.8rem;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.tab-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.tab-btn[aria-selected='true'] {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.panel {
+  border: 1px solid var(--border-strong);
+  border-radius: 0 var(--radius) var(--radius) var(--radius);
+  background-color: var(--bg-raised);
+  padding: clamp(0.9rem, 2.5vw, 1.5rem);
+  margin-bottom: 1.5rem;
+}
+
+.panel:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- cards, notices */
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--bg-sunken);
+  padding: 0.9rem 1.05rem;
+  margin: 1rem 0;
+}
+
+.card > :first-child {
+  margin-top: 0;
+}
+.card > :last-child {
+  margin-bottom: 0;
+}
+
+.intro {
+  border-left: 3px solid var(--accent);
+}
+
+.notice {
+  border: 1px solid var(--border-strong);
+  border-left-width: 3px;
+  border-radius: var(--radius);
+  padding: 0.7rem 1rem;
+  margin: 1rem 0;
+  background-color: var(--bg-sunken);
+  font-size: 0.95rem;
+}
+
+.notice-warn {
+  border-left-color: var(--lost);
+}
+.notice-scope {
+  border-left-color: var(--text-muted);
+}
+.notice-model {
+  border-left-color: var(--wrong-way);
+}
+
+.notice strong {
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------- controls */
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin: 1rem 0;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.control > label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.control-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+button.action {
+  appearance: none;
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 0.6rem 1.1rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+button.action:hover {
+  background-color: color-mix(in srgb, var(--accent) 86%, white);
+}
+
+button.action.secondary {
+  background-color: transparent;
+  color: var(--text);
+  border-color: var(--control-border);
+}
+
+button.action.secondary:hover {
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: var(--accent);
+}
+
+button.action:disabled {
+  /* Lower the lightness rather than using opacity, so the text keeps its ratio. */
+  background-color: var(--bg-sunken);
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+  cursor: not-allowed;
+}
+
+select,
+input[type='number'],
+input[type='text'],
+textarea {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  background-color: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.65rem;
+  min-height: 44px;
+}
+
+textarea {
+  min-height: 5rem;
+  width: 100%;
+}
+
+select {
+  /* A styled select needs its own chevron once the native one is removed. */
+  appearance: none;
+  padding-right: 2.1rem;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
+    linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.1rem) 1.15rem,
+    calc(100% - 0.72rem) 1.15rem;
+  background-size:
+    0.38rem 0.38rem,
+    0.38rem 0.38rem;
+  background-repeat: no-repeat;
+}
+
+input[type='range'] {
+  accent-color: var(--accent);
+  min-height: 44px;
+  width: min(100%, 18rem);
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.slider-value {
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 4.5ch;
+}
+
+/* ---------------------------------------------------------------- the schedule grid */
+
+.grid-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background-color: var(--bg-sunken);
+  padding: 0.6rem;
+}
+
+.grid-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+table.bytes {
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+table.bytes th,
+table.bytes td {
+  padding: 0.12rem 0.1rem;
+  text-align: center;
+}
+
+table.bytes thead th,
+table.bytes tbody th {
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+table.bytes tbody th {
+  text-align: right;
+  padding-right: 0.5rem;
+}
+
+.byte {
+  appearance: none;
+  display: block;
+  width: 3.1ch;
+  box-sizing: content-box;
+  padding: 0.18rem 0.2rem;
+  background-color: var(--bg);
+  color: var(--text);
+  /* A byte cell is an interactive control, so this border is held to WCAG
+     1.4.11 and takes --control-border, not the decorative --border. The gate's
+     first full drive measured --border here at 1.44-1.61:1 against the
+     surround, which is what sent it back. */
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  min-height: 0;
+}
+
+.byte:hover {
+  border-color: var(--accent);
+}
+
+
+/* A byte with bits that fell to the ground state. The glyph, not the hue, is
+   what carries this -- but the border is still a control boundary, so these
+   take the solid damage colour rather than a low-percentage mix toward
+   transparent, which would land under 3:1. */
+.byte.lost {
+  color: var(--lost);
+  border-color: var(--lost);
+}
+
+.byte.wrong-way {
+  color: var(--wrong-way);
+  border-color: var(--wrong-way);
+}
+
+/*
+ * A SELECTED cell takes the accent fill and the accent ink, and this rule sits
+ * after the damage rules on purpose. `.byte[aria-pressed="true"]` and
+ * `.byte.lost` have the same specificity, so whichever is written last wins --
+ * and with the damage rule last, a cell that was both selected and damaged
+ * painted --lost on the accent fill, which the gate measured as a real
+ * color-contrast violation. The damage is still carried by the glyph in the
+ * cell and by the cell's accessible name, so nothing is lost by letting the
+ * selected state own the colour.
+ */
+.byte[aria-pressed='true'] {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.byte.is-input {
+  border-color: var(--kept);
+  border-width: 2px;
+}
+
+.byte.is-target {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.byte .mark {
+  font-size: 0.85em;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+}
+
+.legend li {
+  color: var(--text-dim);
+}
+
+.legend .swatch {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.swatch-lost {
+  color: var(--lost);
+}
+.swatch-wrong {
+  color: var(--wrong-way);
+}
+.swatch-kept {
+  color: var(--kept);
+}
+.swatch-accent {
+  color: var(--accent);
+}
+
+/* ---------------------------------------------------------------- bits view */
+
+.bits {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin: 0.6rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bits li {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.3rem 0.45rem;
+  background-color: var(--bg);
+  text-align: center;
+  min-width: 4.6ch;
+  color: var(--text-dim);
+}
+
+.bits li .bit-value {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.bits li.bit-lost {
+  border-color: color-mix(in srgb, var(--lost) 60%, transparent);
+}
+.bits li.bit-lost .bit-value {
+  color: var(--lost);
+}
+.bits li.bit-wrong {
+  border-color: color-mix(in srgb, var(--wrong-way) 60%, transparent);
+}
+.bits li.bit-wrong .bit-value {
+  color: var(--wrong-way);
+}
+.bits li .bit-index {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------- tables */
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 1rem 0;
+}
+
+.table-scroll:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+table.data {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.88rem;
+}
+
+table.data caption {
+  caption-side: top;
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+table.data th,
+table.data td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.45rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+table.data thead th {
+  color: var(--text);
+  background-color: var(--bg);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+table.data tbody th {
+  color: var(--text);
+  font-weight: 600;
+}
+
+table.data td {
+  color: var(--text-dim);
+}
+
+table.data td.num,
+table.data th.num {
+  font-family: var(--mono);
+  text-align: right;
+  white-space: nowrap;
+}
+
+table.data tr:last-child th,
+table.data tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------------------------------------------------------------- key/value readouts */
+
+.readout {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.3rem 0.9rem;
+  margin: 0.9rem 0;
+  font-size: 0.9rem;
+}
+
+.readout dt {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.readout dd {
+  margin: 0;
+  font-family: var(--mono);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.hex {
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+  color: var(--text);
+}
+
+.big-count {
+  font-family: var(--mono);
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-weight: 700;
+  color: var(--accent);
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- verdicts */
+
+.verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  border: 1px solid var(--border-strong);
+  border-left-width: 4px;
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin: 1rem 0;
+  background-color: var(--bg-sunken);
+}
+
+.verdict-icon {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.verdict-body {
+  min-width: 0;
+}
+
+.verdict-headline {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.verdict-detail {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+}
+
+/* An alarm is the system's integrity being wrong, not a function returning
+   false. Key recovered from a damaged image IS the alarm. */
+.verdict[data-verdict='recovered'] {
+  border-left-color: var(--alarm);
+}
+.verdict[data-verdict='recovered'] .verdict-icon,
+.verdict[data-verdict='recovered'] .verdict-headline {
+  color: var(--alarm);
+}
+
+.verdict[data-verdict='no-consistent-key'] {
+  border-left-color: var(--ok);
+}
+.verdict[data-verdict='no-consistent-key'] .verdict-icon,
+.verdict[data-verdict='no-consistent-key'] .verdict-headline {
+  color: var(--ok);
+}
+
+.verdict[data-verdict='budget-exhausted'],
+.verdict[data-verdict='refused'] {
+  border-left-color: var(--accent);
+}
+.verdict[data-verdict='budget-exhausted'] .verdict-icon,
+.verdict[data-verdict='budget-exhausted'] .verdict-headline,
+.verdict[data-verdict='refused'] .verdict-icon,
+.verdict[data-verdict='refused'] .verdict-headline {
+  color: var(--accent);
+}
+
+.verdict[data-verdict='idle'] {
+  border-left-color: var(--text-muted);
+}
+.verdict[data-verdict='idle'] .verdict-icon,
+.verdict[data-verdict='idle'] .verdict-headline {
+  color: var(--text-muted);
+}
+
+.verdict[data-verdict='running'] {
+  border-left-color: var(--kept);
+}
+.verdict[data-verdict='running'] .verdict-icon,
+.verdict[data-verdict='running'] .verdict-headline {
+  color: var(--kept);
+}
+
+.negative-claim {
+  margin: 0.6rem 0 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  background-color: var(--bg);
+}
+
+.check-line {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  margin: 0.3rem 0;
+}
+
+.check-line .check-mark {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.check-pass .check-mark {
+  color: var(--ok);
+}
+.check-fail .check-mark {
+  color: var(--alarm);
+}
+.check-note .check-mark {
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------- misc */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.col {
+  flex: 1 1 18rem;
+  min-width: min(100%, 16rem);
+}
+
+.stat-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat-strip li {
+  flex: 1 1 8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.6rem 0.8rem;
+  background-color: var(--bg-sunken);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stat-value {
+  display: block;
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem 0.8rem;
+  margin: 1rem 0;
+  background-color: var(--bg-sunken);
+}
+
+summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+  min-height: 1.6rem;
+}
+
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------- footer */
+
+.scripture-footer {
+  border-top: 1px solid var(--border);
+  margin-top: 2.5rem;
+  padding-top: 1.2rem;
+  text-align: center;
+  font-size: 0.86rem;
+}
+
+.scripture-footer p {
+  color: var(--text-muted);
+  margin: 0.4rem 0;
+}
+
+.footer-links a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+/* ---------------------------------------------------------------- motion */
+
+.progress-bar {
+  height: 0.5rem;
+  border-radius: 999px;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin: 0.5rem 0;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--accent);
+  width: 0;
+  /* Tied to measured progress, never idle. */
+  transition: width 0.2s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Cancel the transition and leave the fill at its final width -- a reduced
+     motion reader still has to be able to see where the bar got to. */
+  .progress-fill {
+    transition: none;
+  }
+  button.action,
+  .tab-btn,
+  .byte {
+    transition: none;
+  }
+}
