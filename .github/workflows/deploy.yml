@@ -95,10 +95,9 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.65.1-noble@sha256:1507cbfc550a63a6b7396791ca4f00df17beb56342d2447b3f106c306f525579
       options: --ipc=host
     env:
+      HOME: /root
       # Keep in step with the image tag above; asserted before the gate runs.
       EXPECTED_PLAYWRIGHT_VERSION: 1.65.1
-    env:
-      HOME: /root
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
