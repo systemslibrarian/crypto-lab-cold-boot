@@ -66,8 +66,8 @@ const MEASURES: readonly Measure[] = [
     text:
       'With most of the disk-encryption systems the paper studied, a user who fully powers the ' +
       'machine down when it is not in use is protected — and should guard it for a minute or so ' +
-      'afterwards, because the contents persist briefly. The paper calls this effective and ' +
-      'inconvenient, and names one exception it tested: BitLocker in its "basic" TPM mode stays ' +
+      'afterwards on the hardware they studied. That timing is an observation from the 2008 study, ' +
+      'not a guaranteed erasure interval for other hardware or temperatures. The paper names one exception it tested: BitLocker in its "basic" TPM mode stays ' +
       'vulnerable, because the disk mounts automatically when the machine powers on.',
   },
   {
